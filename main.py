@@ -277,5 +277,6 @@ def main():
   cleanup()
 
 
-
-main()
+# Prevent running main if imported, only direct execution
+if __name__ == "__main__":
+  main()
