@@ -4,7 +4,7 @@ import glob
 import shutil
 from calendar import monthrange
 from datetime import datetime
-from os import listdir, path
+from os import listdir, makedirs, path
 
 # Data manipulation
 import pandas as pd
@@ -57,8 +57,8 @@ def get_todays_calories(data):
   return data['Total Cal'].sum()
 
 def get_average_calories(data, days):
-    # Sum of all calories
-    return data['Total Cal'].sum() / days
+  # Sum of all calories
+  return round(data['Total Cal'].sum() / days, 2)
 
 def get_lifetime_calories(data):
   # Calories burned in lifetime
@@ -66,7 +66,7 @@ def get_lifetime_calories(data):
 
 def get_lifetime_workout_average_calories(data):
   # Average calories burned per day in lifetime
-  return data['Total Cal'].mean()
+  return round(data['Total Cal'].mean(), 2)
 
 
 ########################################################################################
@@ -78,7 +78,7 @@ def get_todays_distance(data):
 
 def get_average_distance(data, days):
   # Distance row average for month
-  return data['Work Distance'].sum() / days
+  return round(data['Work Distance'].sum() / days, 2)
 
 def get_lifetime_distance(data):
   # Distance row in lifetime
@@ -86,7 +86,7 @@ def get_lifetime_distance(data):
 
 def get_lifetime_workout_average_distance(data):
   # Average distance rowed per workout in lifetime
-  return data['Work Distance'].mean()
+  return round(data['Work Distance'].mean(), 2)
 
 ########################################################################################
 # Time
@@ -97,15 +97,15 @@ def get_todays_time(data):
 
 def get_average_time(data, days):
   # Time row average for month
-  return data['Work Time (Seconds)'].sum() / days
+  return round(data['Work Time (Seconds)'].sum() / days, 2)
 
 def get_lifetime_time(data):
   # Time row in lifetime
-  return data['Work Time (Seconds)'].sum()
+  return round(data['Work Time (Seconds)'].sum(), 2)
 
 def get_lifetime_workout_average_time(data):
   # Average time rowed per workout in lifetime
-  return data['Work Time (Seconds)'].mean()
+  return round(data['Work Time (Seconds)'].mean(), 2)
 
 ########################################################################################
 # Small Helpers
@@ -197,31 +197,75 @@ def monthly_stats(data):
   # How many days our in OUR month
   _, total_days_in_month = monthrange(current_date.year, current_date.month)
   # Average calories this month
-  print("\n\n" + "-"*40 + "\n\n")
-  print(f"{'Monthly Stats for:':<40} {current_date.strftime('%B %Y')} ({days_into_month}/{total_days_in_month})")
+  print("-"*40 + "\n")
+  print(f"{'Monthly Stats for:':<40} {current_date.strftime('%B %Y')} ({days_into_month}/{total_days_in_month} days)")
+  print(f"{'Total workouts this month:':<40} {len(working_month)}")
+  print(f"{'Missed workouts this month:':<40} {days_into_month - len(working_month)}")
+  print(f"{'Average lost calorie burn potential:':<40} {round(get_average_calories(working_month, len(working_month)) * (days_into_month - len(working_month)), 2)} calories")
   print("\n")
+  print("-"*40 + "\n" + "Calorie Stats" + "\n" + "-"*40)
   print(f"{'Total calories burned:':<40} {get_average_calories(working_month, 1)} calories")
+  print(f"{'Average calories burned per workout:':<40} {get_average_calories(working_month, len(working_month))} calories")
   print(f"{'Average calories burned per day:':<40} {get_average_calories(working_month, days_into_month)} calories")
+  print("-"*40 + "\n" + "Distance Stats" + "\n" + "-"*40)
+  print(f"{'Total distance rowed:':<40} {get_average_distance(working_month, 1)} meters")
+  print(f"{'Average distance rowed per workout:':<40} {get_average_distance(working_month, len(working_month))} meters")
   print(f"{'Average distance rowed per day:':<40} {get_average_distance(working_month, days_into_month)} meters")
+  print("-"*40 + "\n" + "Time Stats" + "\n" + "-"*40)
+  print(f"{'Total time rowed:':<40} {seconds_to_minutes(get_average_time(working_month, 1))}")
+  print(f"{'Average time rowed per workout:':<40} {seconds_to_minutes(get_average_time(working_month, len(working_month)))}")
   print(f"{'Average time rowed per day:':<40} {seconds_to_minutes(get_average_time(working_month, days_into_month))}")
-
-  print("\n\n" + "-"*40 + "\n\n")
+  print("\n" + "-"*40)
 
 def lifetime_stats(data):
   total_days = get_lifetime_usage(data)
-  print("\n\n" + "-"*40 + "\n\n")
+  print("\n" + "-"*40)
   print(f"{'Lifetime Stats':<40}" + "\n")
   print(f"{'First workout:':<40} {total_days} days ago")
   print(f"{'Total workouts:':<40} {len(data)} workouts")
   print(f"{'Average workout percentage:':<40} {len(data) / total_days * 100:.2f}%")
-  print("\n")
+  print("\n" + "-"*40 + "\n" + "Calorie Stats" + "\n" + "-"*40)
   print(f"{'Total calories burned:':<40} {get_lifetime_calories(data)} calories")
-  print(f"{'Average calories burned per workout:':<40} {get_lifetime_workout_average_calories(data):.2f} calories")
+  print(f"{'Average calories burned per workout:':<40} {get_lifetime_workout_average_calories(data)} calories")
+  print("-"*40 + "\n" + "Distance Stats" + "\n" + "-"*40)
   print(f"{'Total distance rowed:':<40} {get_lifetime_distance(data)} meters")
-  print(f"{'Average distance rowed per workout:':<40} {get_lifetime_workout_average_distance(data):.2f} meters")
+  print(f"{'Average distance rowed per workout:':<40} {get_lifetime_workout_average_distance(data)} meters")
+  print("-"*40 + "\n" + "Time Stats" + "\n" + "-"*40)
   print(f"{'Total time rowed:':<40} {seconds_to_minutes(get_lifetime_time(data))}")
   print(f"{'Average time rowed per workout:':<40} {seconds_to_minutes(get_lifetime_workout_average_time(data))}")
-  print("\n\n" + "-"*40)
+  print("-"*40)
+
+
+def interface(data):
+  print("\n\n" + "-"*40 + "\n\n")
+  print(f"{'Rowing Machine Stats':<40}")
+  print("\n")
+  print("1. Daily Stats")
+  print("2. Monthly Stats")
+  print("3. Lifetime Stats")
+  print("4. Exit")
+  print("\n")
+  choice = input("Enter your choice: ")
+  if choice == '1':
+    daily_stats(data)
+  elif choice == '2':
+    monthly_stats(data)
+  elif choice == '3':
+    lifetime_stats(data)
+  elif choice == '4':
+    exit()
+  else:
+    print("Invalid choice. Please try again.")
+    interface()
+
+def cleanup():
+  if not path.exists('used-reports'):
+    makedirs('used-reports')
+  # Move all csv files except master.csv to used-reports
+  for file_name in listdir('.'):
+    if file_name.endswith('.csv') and file_name != 'master.csv':
+      new_file_name = file_name.replace('.csv', '_PROCESSED.csv')
+      shutil.move(file_name, 'used-reports/' + new_file_name)
 
 ########################################################################################
 # Main
@@ -229,14 +273,9 @@ def lifetime_stats(data):
 def main():
   # Full dataset
   all_data = update_data()
-  daily_stats(all_data)
-  # monthly_stats(all_data)
-  # lifetime_stats(all_data)
-  # Move all csv files except master.csv to used-reports
-  for file_name in listdir('.'):
-    if file_name.endswith('.csv') and file_name != 'master.csv':
-      new_file_name = file_name.replace('.csv', '_PROCESSED.csv')
-      shutil.move(file_name, 'used-reports/' + new_file_name)
+  interface(all_data)
+  cleanup()
+
 
 
 main()

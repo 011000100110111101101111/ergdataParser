@@ -25,4 +25,6 @@ Deactivate the virtual env
 deactivate
 ```
 
-## About
+## Usage
+
+Download all your rowerg data from logbook as csv files and put in the same directory as this program. Then just run the program, it has a basic interface for options. It will move all used folders to *used-reports* after it is complete, and append PROCESSED to the end.
