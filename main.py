@@ -167,6 +167,11 @@ def seconds_to_minutes(seconds):
     # Holyyyyyyyy god if you got here
     return f"{years} years {leftover_days} days {leftover_hours} hours {leftover_minutes} minutes {leftover_seconds} seconds"
 
+# input of form -> Jan 25, 2022
+def string_to_date(date):
+  date_obj = datetime.strptime(date, '%b %d, %Y')
+  return date_obj
+
 ########################################################################################
 # Different Use-cases
 def daily_stats(data):
@@ -266,6 +271,33 @@ def cleanup():
     if file_name.endswith('.csv') and file_name != 'master.csv':
       new_file_name = file_name.replace('.csv', '_PROCESSED.csv')
       shutil.move(file_name, 'used-reports/' + new_file_name)
+
+# -> String
+# Options; calories, time, distance
+# Options; Date can be specified to query specific date
+def apiRun(request, date=None):
+  data = update_data()
+  current_date = datetime.now()
+  # If not none,
+  # Filter rows based on current date
+  if date:
+    requested_day = string_to_date(date)
+    queried_data = data[pd.to_datetime(data['Date']).dt.date == requested_day.date()]
+  else:
+    queried_data = data[pd.to_datetime(data['Date']).dt.date == current_date.date()]
+  if len(queried_data) == 0:
+    # We didnt workout.
+    return "No workout today :("
+  if request == "calories":
+    return str(get_todays_calories(queried_data))
+  elif request == "time":
+    return str(get_todays_time(queried_data))
+  elif request == "distance":
+    return str(get_todays_distance(queried_data))
+  else:
+    return "Bad Request"
+
+
 
 ########################################################################################
 # Main

@@ -2,3 +2,4 @@ venv/
 used-reports/
 master.csv
 .DS_Store
+__pycache__/
