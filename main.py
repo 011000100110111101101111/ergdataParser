@@ -172,6 +172,16 @@ def string_to_date(date):
   date_obj = datetime.strptime(date, '%b %d, %Y')
   return date_obj
 
+# Get the daily workout count ( Requires more work than
+# just .length since workouts can be on same day. )
+def get_monthly_workout_counts(data):
+  dates = data['Date']
+  days_worked_out = []
+  for date in dates:
+    if date not in days_worked_out:
+      days_worked_out.append(date[8:10])
+  return len(days_worked_out)
+
 ########################################################################################
 # Different Use-cases
 def daily_stats(data):
@@ -179,7 +189,7 @@ def daily_stats(data):
   # Filter rows based on current date
   todays_data = data[pd.to_datetime(data['Date']).dt.date == current_date.date()]
   # Average calories this month
-  print("-"*40 + "\n")
+  print("-"*64 + "\n")
   print(f"{'Daily Stats for:':<40} {datetime.now().strftime('%B %d %Y')}" + "\n")
   today_cals = get_todays_calories(todays_data)
   if not today_cals == 0:
@@ -190,7 +200,7 @@ def daily_stats(data):
   else:
     print(f"{'No data for today.':<40} {"Get to it!"}")
 
-  print("\n" + "-"*40)
+  print("\n" + "-"*64)
 
 def monthly_stats(data):
   # We will perform most stats on a monthly basis as to reduce larger datasets.
@@ -201,48 +211,57 @@ def monthly_stats(data):
   days_into_month = current_date.day
   # How many days our in OUR month
   _, total_days_in_month = monthrange(current_date.year, current_date.month)
+  # Days we worked out this month
+  workout_days_this_month = get_monthly_workout_counts(working_month)
+  # Missed days
+  missed_days = days_into_month - workout_days_this_month
   # Average calories this month
-  print("-"*40 + "\n")
+  print("-"*64 + "\n")
   print(f"{'Monthly Stats for:':<40} {current_date.strftime('%B %Y')} ({days_into_month}/{total_days_in_month} days)")
-  print(f"{'Total workouts this month:':<40} {len(working_month)}")
-  print(f"{'Missed workouts this month:':<40} {days_into_month - len(working_month)}")
   print(f"{'Average lost calorie burn potential:':<40} {round(get_average_calories(working_month, len(working_month)) * (days_into_month - len(working_month)), 2)} calories")
+  print(f"{'Total workouts this month:':<40} {len(working_month)}")
+  print(f"{'Days worked out this month:':<40} {workout_days_this_month}")
+  if missed_days > 4:
+    print(f"{'Days missed this month:':<40} {missed_days} out of 4 allowances\n")
+    print(f"\n{'=' * 64}\nYou are only allowed 4 days off a month. Get to it!!!\n{'=' * 64}\n")
+  else:
+    print(f"{'Days missed this month:':<40} {missed_days} out of 4 allowances")
   print("\n")
-  print("-"*40 + "\n" + "Calorie Stats" + "\n" + "-"*40)
+  print("-"*64 + "\n" + "Calorie Stats" + "\n" + "-"*64)
   print(f"{'Total calories burned:':<40} {get_average_calories(working_month, 1)} calories")
   print(f"{'Average calories burned per workout:':<40} {get_average_calories(working_month, len(working_month))} calories")
   print(f"{'Average calories burned per day:':<40} {get_average_calories(working_month, days_into_month)} calories")
-  print("-"*40 + "\n" + "Distance Stats" + "\n" + "-"*40)
+  print("-"*64 + "\n" + "Distance Stats" + "\n" + "-"*64)
   print(f"{'Total distance rowed:':<40} {get_average_distance(working_month, 1)} meters")
   print(f"{'Average distance rowed per workout:':<40} {get_average_distance(working_month, len(working_month))} meters")
   print(f"{'Average distance rowed per day:':<40} {get_average_distance(working_month, days_into_month)} meters")
-  print("-"*40 + "\n" + "Time Stats" + "\n" + "-"*40)
+  print("-"*64 + "\n" + "Time Stats" + "\n" + "-"*64)
   print(f"{'Total time rowed:':<40} {seconds_to_minutes(get_average_time(working_month, 1))}")
   print(f"{'Average time rowed per workout:':<40} {seconds_to_minutes(get_average_time(working_month, len(working_month)))}")
   print(f"{'Average time rowed per day:':<40} {seconds_to_minutes(get_average_time(working_month, days_into_month))}")
-  print("\n" + "-"*40)
+  print("\n" + "-"*64)
 
 def lifetime_stats(data):
   total_days = get_lifetime_usage(data)
-  print("\n" + "-"*40)
+  print("\n" + "-"*64)
   print(f"{'Lifetime Stats':<40}" + "\n")
   print(f"{'First workout:':<40} {total_days} days ago")
   print(f"{'Total workouts:':<40} {len(data)} workouts")
   print(f"{'Average workout percentage:':<40} {len(data) / total_days * 100:.2f}%")
-  print("\n" + "-"*40 + "\n" + "Calorie Stats" + "\n" + "-"*40)
+  print("\n" + "-"*64 + "\n" + "Calorie Stats" + "\n" + "-"*64)
   print(f"{'Total calories burned:':<40} {get_lifetime_calories(data)} calories")
   print(f"{'Average calories burned per workout:':<40} {get_lifetime_workout_average_calories(data)} calories")
-  print("-"*40 + "\n" + "Distance Stats" + "\n" + "-"*40)
+  print("-"*64 + "\n" + "Distance Stats" + "\n" + "-"*64)
   print(f"{'Total distance rowed:':<40} {get_lifetime_distance(data)} meters")
   print(f"{'Average distance rowed per workout:':<40} {get_lifetime_workout_average_distance(data)} meters")
-  print("-"*40 + "\n" + "Time Stats" + "\n" + "-"*40)
+  print("-"*64 + "\n" + "Time Stats" + "\n" + "-"*64)
   print(f"{'Total time rowed:':<40} {seconds_to_minutes(get_lifetime_time(data))}")
   print(f"{'Average time rowed per workout:':<40} {seconds_to_minutes(get_lifetime_workout_average_time(data))}")
-  print("-"*40)
+  print("-"*64)
 
 
 def interface(data):
-  print("\n\n" + "-"*40 + "\n\n")
+  print("\n\n" + "-"*64 + "\n\n")
   print(f"{'Rowing Machine Stats':<40}")
   print("\n")
   print("1. Daily Stats")
